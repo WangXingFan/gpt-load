@@ -230,6 +230,10 @@ const timeoutValid = computed(() =>
     return value === undefined || (Number.isSafeInteger(value) && value > 0)
   }),
 )
+const priorityValid = computed(() => {
+  const value = draft.value?.priority
+  return value !== undefined && Number.isInteger(value) && value >= 0 && value <= 100
+})
 const policyCountsValid = computed(() =>
   policyCountKeys.every((key) => {
     const value = draft.value?.overrides[key]
@@ -241,6 +245,7 @@ const valid = computed(
     !nameError.value &&
     Object.keys(paramErrors.value).length === 0 &&
     weightValid.value &&
+    priorityValid.value &&
     isValidPriceMultiplier(draft.value?.price_multiplier ?? '') &&
     timeoutValid.value &&
     policyCountsValid.value &&
@@ -706,6 +711,7 @@ onBeforeUnmount(() => {
             :validation-protocols="saved?.validation_protocols ?? []"
             :models="modelsQuery.data.value?.items ?? []"
             :weight-manual="draft.weight_manual"
+            :priority="draft.priority"
             :price-multiplier="draft.price_multiplier"
             :enabled="draft.enabled"
             :pending="mutationPending"
@@ -718,6 +724,7 @@ onBeforeUnmount(() => {
             @update:validation-model="draft.validation_model = $event"
             @update:validation-protocol="draft.validation_protocol = $event"
             @update:weight-manual="draft.weight_manual = $event"
+            @update:priority="draft.priority = $event"
             @update:price-multiplier="draft.price_multiplier = $event"
             @update:enabled="draft.enabled = $event"
           />
@@ -735,6 +742,7 @@ onBeforeUnmount(() => {
             :validation-protocols="saved?.validation_protocols ?? []"
             :models="modelsQuery.data.value?.items ?? []"
             :weight-manual="draft.weight_manual"
+            :priority="draft.priority"
             :price-multiplier="draft.price_multiplier"
             :enabled="draft.enabled"
             :pending="mutationPending"
@@ -746,6 +754,7 @@ onBeforeUnmount(() => {
             @update:validation-model="draft.validation_model = $event"
             @update:validation-protocol="draft.validation_protocol = $event"
             @update:weight-manual="draft.weight_manual = $event"
+            @update:priority="draft.priority = $event"
             @update:price-multiplier="draft.price_multiplier = $event"
             @update:enabled="draft.enabled = $event"
           />

@@ -54,6 +54,7 @@ type GroupConfig struct {
 	ValidationModel    string
 	Models             []ModelConfig
 	Settings           config.Settings
+	Priority           int
 	WeightManual       *int
 	Enabled            bool
 	Proxy              *outboundproxy.Config
@@ -151,6 +152,7 @@ func (rules HeaderRules) ConfiguredNames() []string {
 }
 
 type GroupView struct {
+	Priority                  int
 	ConcurrencyLimit          int64
 	PriceMultiplier           pricing.PriceMultiplier
 	ID                        uint
@@ -176,6 +178,7 @@ type GroupView struct {
 }
 
 type GroupCatalogView struct {
+	Priority       int
 	ID             uint
 	Name           string
 	ChannelID      channel.ID
@@ -325,7 +328,8 @@ func Compile(input CompileInput) (*ConfigSnapshot, error) {
 
 	for _, group := range input.Groups {
 		catalogView := GroupCatalogView{
-			ID: group.ID, Name: group.Name, Enabled: group.Enabled,
+			Priority: group.Priority,
+			ID:       group.ID, Name: group.Name, Enabled: group.Enabled,
 			ChannelID:      group.ChannelID,
 			ConnectionType: connection.Normalize(group.ConnectionType),
 			WeightManual:   cloneWeight(group.WeightManual),
@@ -347,6 +351,7 @@ func Compile(input CompileInput) (*ConfigSnapshot, error) {
 		}
 
 		view := GroupView{
+			Priority:                  group.Priority,
 			PriceMultiplier:           resolvePriceMultiplier(group.PriceMultiplier),
 			ID:                        group.ID,
 			Name:                      group.Name,
@@ -619,6 +624,9 @@ func validateCompileInput(input CompileInput) error {
 		}
 		if err := validateManualWeight(fmt.Sprintf("group %d", group.ID), group.WeightManual); err != nil {
 			return err
+		}
+		if group.Priority < 0 || group.Priority > MaxPriority {
+			return fmt.Errorf("group %d priority must be between 0 and %d", group.ID, MaxPriority)
 		}
 		seenModels := make(map[[2]string]struct{}, len(group.Models))
 		for _, model := range group.Models {

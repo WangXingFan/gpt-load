@@ -41,6 +41,7 @@ type GroupCollectionCredentialCounts struct {
 }
 
 type GroupCollectionItem struct {
+	Priority         int                             `json:"priority"`
 	Concurrency      ConcurrencyView                 `json:"concurrency"`
 	PriceMultiplier  string                          `json:"price_multiplier"`
 	ID               uint                            `json:"id"`
@@ -371,6 +372,7 @@ func mapGroupCollectionRecords(
 		catalog := snapshot.GroupCatalog[group.ID]
 		record := groupCollectionRecord{
 			GroupCollectionItem: GroupCollectionItem{
+				Priority:        group.Priority,
 				PriceMultiplier: priceMultiplierResponse(group.PriceMultiplierMicros),
 				ID:              group.ID, Name: group.Name, ChannelID: channelID,
 				ConnectionType: normalizeGroupConnectionType(group.ConnectionType),

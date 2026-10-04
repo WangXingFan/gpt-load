@@ -287,7 +287,7 @@ func TestCodexLiveCreatesAcrossGroupsPinsOwnerAndLogsOnce(t *testing.T) {
 	}))
 	defer echo.Close()
 	fake := &liveFakeOpener{wsURL: "ws" + strings.TrimPrefix(echo.URL, "http")}
-	_, engine, sink, _, _ := liveGatewayFixture(t, fake)
+	handler, engine, sink, _, _ := liveGatewayFixture(t, fake)
 	server := httptest.NewServer(engine)
 	defer server.Close()
 	models := []string{"client-live-model", channel.CodexLiveModelID, channel.CodexLiveModelID, channel.CodexLiveModelID}
@@ -349,6 +349,24 @@ func TestCodexLiveCreatesAcrossGroupsPinsOwnerAndLogsOnce(t *testing.T) {
 					}
 				}
 				_ = connection.Close()
+				if repeat == 0 {
+					// Closing the client socket does not synchronously release the
+					// server's attachment. Wait for cleanup before testing reconnect.
+					deadline := time.Now().Add(5 * time.Second)
+					for {
+						handler.liveSessions.mu.Lock()
+						call := handler.liveSessions.calls["rtc_1"]
+						detached := call != nil && !call.attached
+						handler.liveSessions.mu.Unlock()
+						if detached {
+							break
+						}
+						if time.Now().After(deadline) {
+							t.Fatal("sideband attachment was not released")
+						}
+						time.Sleep(time.Millisecond)
+					}
+				}
 			}
 		}
 		hungup := liveRequest(t, server.Client(), http.MethodPost, server.URL+location+"/hangup", "gl-client", "", nil)

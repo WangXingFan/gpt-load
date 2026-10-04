@@ -71,6 +71,7 @@ const groupSettingsFields = [
   'validation_protocols',
   'enabled',
   'weight_manual',
+  'priority',
   'overrides',
   'effective',
   'proxy',
@@ -86,6 +87,7 @@ const groupModelItemFields = [
 const groupCollectionFields = ['observed_at_ms', 'summary', 'items', 'pagination'] as const
 const groupCollectionSummaryFields = ['total', 'available', 'unavailable', 'disabled'] as const
 const groupCollectionItemFields = [
+  'priority',
   'concurrency',
   'id',
   'name',
@@ -180,6 +182,7 @@ export type GroupSettingsUpdateRequest = Partial<{
   validation_protocol: AccessProtocol | null
   enabled: boolean
   weight_manual: number | null
+  priority: number
   overrides: GroupRuntimeConfigDto
   proxy: ProxyMutation
 }>
@@ -457,6 +460,7 @@ export function projectGroupSettings(value: unknown): GroupSettingsDto {
       record.weight_manual === null
         ? null
         : projectSafeInteger(record.weight_manual, { minimum: 1, maximum: 100 }),
+    priority: projectSafeInteger(record.priority ?? 0, { minimum: 0, maximum: 100 }),
     overrides: projectRuntimeConfig(record.overrides, false),
     effective: projectRuntimeConfig(record.effective, true),
     proxy: projectProxyView(record.proxy),

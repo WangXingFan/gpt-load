@@ -803,6 +803,7 @@ func mapSystemAndGroups(
 			Models:             runtimeModels,
 			Settings:           settings,
 			WeightManual:       cloneWeight(row.WeightManual),
+			Priority:           row.Priority,
 			Enabled:            row.Enabled,
 		}
 		if row.ProxyConfig != nil {

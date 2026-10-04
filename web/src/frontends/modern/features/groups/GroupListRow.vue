@@ -27,12 +27,13 @@ import { useApiClient } from '@shared/http/client-context'
 const props = defineProps<{
   group: GroupRow
   expanded: boolean
-  pending?: 'toggle' | 'weight'
+  pending?: 'toggle' | 'weight' | 'priority'
   enabledOverride?: boolean
   usage?: GroupUsage
   usageLoading: boolean
   usageIncomplete: boolean
   weightError?: string
+  priorityError?: string
 }>()
 const emit = defineEmits<{
   expand: []
@@ -41,6 +42,10 @@ const emit = defineEmits<{
   weightEditing: [value: boolean]
   weightDirty: [value: boolean]
   clearWeightError: []
+  priority: [value: number]
+  priorityEditing: [value: boolean]
+  priorityDirty: [value: boolean]
+  clearPriorityError: []
 }>()
 const { t, n, locale } = useI18n()
 const client = useApiClient()
@@ -304,19 +309,38 @@ const lastActive = computed(() =>
           :disabled="Boolean(pending)"
           @update:model-value="emit('toggle', $event)"
         />
-        <AppInlineNumber
-          :model-value="group.weight"
-          :label="t('groups.edit.weight')"
-          :min="1"
-          :max="100"
-          :pending="pending === 'weight'"
-          :disabled="Boolean(pending)"
-          :error="weightError"
-          @submit="emit('weight', $event)"
-          @editing="emit('weightEditing', $event)"
-          @dirty="emit('weightDirty', $event)"
-          @clear-error="emit('clearWeightError')"
-        />
+        <div class="modern-group-number">
+          <span class="modern-group-mobile-label">{{ t('groups.row.weight') }}</span>
+          <AppInlineNumber
+            :model-value="group.weight"
+            :label="t('groups.edit.weight')"
+            :min="1"
+            :max="100"
+            :pending="pending === 'weight'"
+            :disabled="Boolean(pending)"
+            :error="weightError"
+            @submit="emit('weight', $event)"
+            @editing="emit('weightEditing', $event)"
+            @dirty="emit('weightDirty', $event)"
+            @clear-error="emit('clearWeightError')"
+          />
+        </div>
+        <div class="modern-group-number">
+          <span class="modern-group-mobile-label">{{ t('groups.row.priority') }}</span>
+          <AppInlineNumber
+            :model-value="group.priority"
+            :label="t('groups.edit.priority')"
+            :min="0"
+            :max="100"
+            :pending="pending === 'priority'"
+            :disabled="Boolean(pending)"
+            :error="priorityError"
+            @submit="emit('priority', $event)"
+            @editing="emit('priorityEditing', $event)"
+            @dirty="emit('priorityDirty', $event)"
+            @clear-error="emit('clearPriorityError')"
+          />
+        </div>
       </div>
     </div>
     <div v-if="expanded" :id="`${id}-models`" class="modern-group-expanded">
@@ -448,6 +472,9 @@ const lastActive = computed(() =>
   justify-items: start;
   gap: var(--modern-space-4);
   text-align: left;
+}
+.modern-group-number {
+  min-width: 0;
 }
 .modern-group-bar-line {
   display: flex;

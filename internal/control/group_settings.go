@@ -22,6 +22,7 @@ import (
 )
 
 type GroupSettingsResponse struct {
+	Priority            int                          `json:"priority"`
 	PriceMultiplier     string                       `json:"price_multiplier"`
 	ChannelID           channel.ID                   `json:"channel_id"`
 	ConnectionType      models.ConnectionType        `json:"connection_type"`
@@ -38,6 +39,7 @@ type GroupSettingsResponse struct {
 }
 
 type GroupSettingsUpdateRequest struct {
+	Priority           optionalField[int]                  `json:"priority"`
 	PriceMultiplier    optionalField[string]               `json:"price_multiplier"`
 	Name               optionalField[string]               `json:"name"`
 	Params             optionalField[json.RawMessage]      `json:"params"`
@@ -50,6 +52,7 @@ type GroupSettingsUpdateRequest struct {
 }
 
 type normalizedGroupSettingsUpdate struct {
+	priority              *int
 	priceMultiplierMicros *int64
 	name                  *string
 	params                json.RawMessage
@@ -151,6 +154,7 @@ func groupSettingsResponse(
 		ValidationModel: cloneString(group.ValidationModel),
 		Enabled:         group.Enabled,
 		WeightManual:    cloneInt(group.WeightManual),
+		Priority:        group.Priority,
 		Overrides:       overrides,
 		Effective:       effective,
 	}, nil
@@ -172,6 +176,7 @@ func normalizeGroupSettingsUpdate(
 		request.Name.Set && request.Name.Null,
 		request.Params.Set && request.Params.Null,
 		request.Enabled.Set && request.Enabled.Null,
+		request.Priority.Set && request.Priority.Null,
 		request.Overrides.Set && request.Overrides.Null,
 	} {
 		if nullable {
@@ -179,7 +184,7 @@ func normalizeGroupSettingsUpdate(
 		}
 	}
 	if !request.ValidationProtocol.Set && !request.Name.Set && !request.Params.Set && !request.ValidationModel.Set &&
-		!request.Enabled.Set && !request.WeightManual.Set && !request.Overrides.Set && !request.Proxy.Set && !request.PriceMultiplier.Set {
+		!request.Enabled.Set && !request.Priority.Set && !request.WeightManual.Set && !request.Overrides.Set && !request.Proxy.Set && !request.PriceMultiplier.Set {
 		return normalizedGroupSettingsUpdate{}, app_errors.ErrBadRequest
 	}
 
@@ -187,6 +192,13 @@ func normalizeGroupSettingsUpdate(
 		return normalizedGroupSettingsUpdate{}, app_errors.ErrValidation
 	}
 	result := normalizedGroupSettingsUpdate{}
+	if request.Priority.Set {
+		if request.Priority.Value < 0 || request.Priority.Value > state.MaxPriority {
+			return normalizedGroupSettingsUpdate{}, app_errors.ErrValidation
+		}
+		value := request.Priority.Value
+		result.priority = &value
+	}
 	if request.PriceMultiplier.Set {
 		value, err := normalizePriceMultiplier(request.PriceMultiplier)
 		if err != nil {
@@ -278,6 +290,10 @@ func (s *Service) UpdateGroupSettings(
 		}
 
 		updates := make(map[string]any, 8)
+		if normalized.priority != nil {
+			group.Priority = *normalized.priority
+			updates["priority"] = group.Priority
+		}
 		if normalized.priceMultiplierMicros != nil {
 			group.PriceMultiplierMicros = normalized.priceMultiplierMicros
 			updates["price_multiplier_micros"] = *normalized.priceMultiplierMicros

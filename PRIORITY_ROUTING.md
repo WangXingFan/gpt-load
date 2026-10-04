@@ -1,0 +1,48 @@
+# Group priority routing
+
+Set **Group priority** in the group's scheduling settings (modern or classic UI).
+Priority accepts integers from `0` to `100`; larger numbers run first.
+Existing groups default to `0`, preserving their existing routing behavior.
+
+For the same client model, eligible groups are considered in descending priority
+order. Route preferences and group/credential weights apply within a priority
+tier. Credential affinity cannot select a lower tier while a higher tier is
+available. After retryable failures exhaust a tier's eligible credentials, the
+next tier is used. Disabled, cooling, blacklisted, filtered, or zero-weight
+candidates are not eligible. The configured retry budget still applies; client
+errors and responses already committed to the client keep their existing retry
+rules. Requests tied to a specific upstream resource still respect that binding.
+
+Example: groups A and B have priority `100`, and C has priority `0`. A and B
+share traffic using their configured weights. C is used only when A and B have
+no remaining eligible candidates for that request. Each new request starts at
+the highest available priority.
+
+The create API and `PUT /api/groups/{id}/settings` accept `priority`. Setting
+`{"priority":0}` resets a group to the default tier; omitting it preserves the
+current value. Settings and group collection responses include `priority`.
+
+## Container upgrade
+
+The **Priority routing image** GitHub Actions workflow tests the backend, builds
+both web interfaces, verifies PostgreSQL/MySQL migration compatibility, and then
+publishes AMD64 and ARM64 images to `ghcr.io/<repository>:priority`. A separate
+`sha-<full-commit>` tag identifies the exact source revision.
+
+For this fork, replace only the image in the existing Compose configuration:
+
+```yaml
+image: ghcr.io/wangxingfan/gpt-load:priority
+```
+
+Keep the existing Compose project name, data volume, `.env`, database connection,
+and encryption key. Before switching, stop the service and back up the complete
+data volume and any external database. The database, `auth.key`, and
+`encryption.key` belong together. Do not run `docker compose down -v`.
+
+Migration `0029_group_priority` adds a non-null integer column with default zero
+and preserves existing groups and credentials. This applies to the compatible
+2.x schema through migration 0028; the floating upstream `:2` tag alone does not
+identify a specific schema version. An older image may reject the new migration
+ledger. To roll back, restore the matching pre-upgrade database backup as well
+as the old image.

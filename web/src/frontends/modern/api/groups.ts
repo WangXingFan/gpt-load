@@ -5,7 +5,7 @@ import { InvalidResponseError } from '@shared/http/errors'
 import { boolean, integer, list, oneOf, record, text } from './response'
 
 export const groupViews = ['all', 'serving', 'attention', 'paused'] as const
-export const groupSorts = ['recent', 'priority', 'name'] as const
+export const groupSorts = ['recent', 'routing_priority', 'priority', 'name'] as const
 export const availabilityStates = [
   'ready',
   'limited',
@@ -36,6 +36,7 @@ export interface CredentialCounts {
   modelCooldown: number
 }
 export interface GroupRow {
+  priority: number
   concurrency: ConcurrencyView
   id: number
   name: string
@@ -61,12 +62,14 @@ export interface GroupWorkspace {
   items: GroupRow[]
 }
 export interface GroupBasics {
+  priority: number
   name: string
   enabled: boolean
   weight: number | null
   priceMultiplier: string
 }
 export type GroupBasicsPatch = Partial<{
+  priority: number
   name: string
   enabled: boolean
   weight_manual: number | null
@@ -144,6 +147,7 @@ export async function getGroupWorkspace(
       enabled: boolean(item.enabled),
       availability: oneOf(item.availability, availabilityStates),
       weight: integer(item.weight),
+      priority: integer(item.priority ?? 0),
       priceMultiplier: text(item.price_multiplier),
       modelCount: integer(item.model_count),
       modelNames: list(item.model_names).map(text),
@@ -180,6 +184,7 @@ export function readGroupBasics(value: unknown): GroupBasics {
     name: text(data.name),
     enabled: boolean(data.enabled),
     weight,
+    priority: integer(data.priority ?? 0),
     priceMultiplier: text(data.price_multiplier),
   }
 }
