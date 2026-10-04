@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -30,8 +31,9 @@ func testGroupPriorityRangeMigration(t *testing.T, open func(*testing.T) *gorm.D
 	// in-range values that must survive untouched.
 	seeded := map[int64]int64{1: 0, 2: 50, 3: 100, 4: 999, 5: 1000000, 6: -5}
 	for id, priority := range seeded {
+		// groups.name carries a unique index, so every seeded row needs its own name.
 		row := map[string]any{
-			"id": id, "name": "priority-range-group", "channel_id": "openai", "connection_type": "api_key",
+			"id": id, "name": fmt.Sprintf("priority-range-group-%d", id), "channel_id": "openai", "connection_type": "api_key",
 			"params": `{"base_url":"https://example.com"}`, "models": `[{"id":"gpt-4o"}]`,
 			"weight_manual": 75, "priority": priority, "enabled": true, "created_at_ms": 1, "updated_at_ms": 1,
 		}
@@ -61,7 +63,7 @@ func testGroupPriorityRangeMigration(t *testing.T, open func(*testing.T) *gorm.D
 		if row.Priority != want[row.ID] {
 			t.Fatalf("group %d priority = %d, want %d", row.ID, row.Priority, want[row.ID])
 		}
-		if row.WeightManual != 75 || row.Name != "priority-range-group" {
+		if row.WeightManual != 75 || row.Name != fmt.Sprintf("priority-range-group-%d", row.ID) {
 			t.Fatalf("migration changed unrelated data: %#v", row)
 		}
 	}
