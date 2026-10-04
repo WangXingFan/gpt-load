@@ -24,16 +24,22 @@ current value. Settings and group collection responses include `priority`.
 
 ## Container upgrade
 
-The **Priority routing image** GitHub Actions workflow tests the backend, builds
-both web interfaces, verifies PostgreSQL/MySQL migration compatibility, and then
-publishes AMD64 and ARM64 images to `ghcr.io/<repository>:priority`. A separate
-`sha-<full-commit>` tag identifies the exact source revision.
+The **Fork container image** GitHub Actions workflow runs on every push to `main`
+(and on manual dispatch). It tests the backend, builds both web interfaces,
+verifies PostgreSQL/MySQL migration compatibility, and then publishes AMD64 and
+ARM64 images to `ghcr.io/<repository>:latest`. A separate `sha-<full-commit>` tag
+identifies the exact source revision, and `:priority` is kept as a legacy alias.
 
-For this fork, replace only the image in the existing Compose configuration:
+For this fork, the Compose image reference never has to change again:
 
 ```yaml
-image: ghcr.io/wangxingfan/gpt-load:priority
+image: ghcr.io/wangxingfan/gpt-load:latest
 ```
+
+Because upstream synchronization also lands on `main`, every sync rebuilds
+`:latest` with your fork's features included. Update a running deployment with
+`docker compose pull` followed by `docker compose up -d`; pin `:sha-<full-commit>`
+when you need the exact revision that was tested.
 
 Keep the existing Compose project name, data volume, `.env`, database connection,
 and encryption key. Before switching, stop the service and back up the complete

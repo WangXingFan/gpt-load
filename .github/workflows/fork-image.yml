@@ -1,16 +1,17 @@
-name: Priority routing image
+name: Fork container image
 
 on:
   push:
-    branches: [feat/group-priority]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: priority-image-${{ github.ref }}
-  cancel-in-progress: true
+  group: fork-image-${{ github.ref }}
+  # 发布类工作流不打断进行中的构建，避免 main 上的提交拿不到 sha- 标签。
+  cancel-in-progress: false
 
 env:
   GOPROXY: https://proxy.golang.org|direct
@@ -145,9 +146,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ steps.image.outputs.name }}:priority
+            ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
-          build-args: VERSION=2.0.0-priority.${{ github.sha }}
+            ${{ steps.image.outputs.name }}:priority
+          build-args: VERSION=2.0.0-fork.${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -158,7 +160,8 @@ jobs:
           IMAGE: ${{ steps.image.outputs.name }}
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          echo "Image: ${IMAGE}:priority" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: ${IMAGE}:latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "Pinned: ${IMAGE}:sha-${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
           echo "Digest: ${DIGEST}" >> "$GITHUB_STEP_SUMMARY"
       - name: Smoke test published image and persisted restart
         env:
