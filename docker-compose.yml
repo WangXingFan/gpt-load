@@ -1,6 +1,7 @@
 services:
   gpt-load:
-    image: ghcr.io/tbphp/gpt-load:2
+    # 本 fork 的镜像：每次同步上游后 main 推送会重建 :latest。
+    image: ghcr.io/wangxingfan/gpt-load:latest
     # build:
     #   context: .
     #   dockerfile: Dockerfile
