@@ -52,3 +52,8 @@ and preserves existing groups and credentials. This applies to the compatible
 identify a specific schema version. An older image may reject the new migration
 ledger. To roll back, restore the matching pre-upgrade database backup as well
 as the old image.
+
+Migration `0030_group_priority_range` clamps priorities stored before the range
+was narrowed, so an existing `999` becomes `100` and a stored `-5` becomes `0`
+instead of failing startup validation. The clamp preserves relative ordering
+between tiers. Groups already inside `0`-`100` are untouched.
