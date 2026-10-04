@@ -245,7 +245,7 @@ func (iterator *Iterator) withWeightedPool(candidates *candidatePool, modes []ch
 	seenGroups := make(map[uint]struct{})
 	for _, mode := range modes {
 		for _, groupID := range candidates.groupIDsByMode[mode] {
-			if iterator.snapshot.Groups[groupID].Priority != priority {
+			if candidates.targetsByGroup[groupID][0].group.Priority != priority {
 				continue
 			}
 			if _, exists := seenGroups[groupID]; !exists {
@@ -303,22 +303,22 @@ func (iterator *Iterator) Next() (Selection, error) {
 	for _, priority := range iterator.priorityTiers {
 		for _, pool := range []*candidatePool{&iterator.regular, &iterator.storeDowngraded} {
 			for _, modes := range iterator.routeModeTiers {
-			var selected state.CredentialMeta
-			var target candidateTarget
-			var found bool
-			now := iterator.now()
-			iterator.withWeightedPool(pool, modes, priority, now, func(weighted []weightedCredential) {
-				selected, found = iterator.selectCredential(weighted, iterator.preferredCredentialID)
+				var selected state.CredentialMeta
+				var target candidateTarget
+				var found bool
+				now := iterator.now()
+				iterator.withWeightedPool(pool, modes, priority, now, func(weighted []weightedCredential) {
+					selected, found = iterator.selectCredential(weighted, iterator.preferredCredentialID)
+					if !found {
+						return
+					}
+					target = iterator.selectTarget(pool, modes, selected, now)
+				})
 				if !found {
-					return
+					continue
 				}
-				target = iterator.selectTarget(pool, modes, selected, now)
-			})
-			if !found {
-				continue
-			}
-			iterator.tried[selected.ID] = struct{}{}
-			return newSelection(selected, target), nil
+				iterator.tried[selected.ID] = struct{}{}
+				return newSelection(selected, target), nil
 			}
 		}
 	}

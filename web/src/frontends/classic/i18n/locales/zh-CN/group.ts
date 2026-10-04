@@ -210,8 +210,8 @@ export default {
         danger: '危险区域',
       },
       routing: {
-        description: '调整分组参与请求分配的相对权重。',
-        weightHelp: '默认 50，范围 1–100；与凭据权重相乘，决定分配比例。',
+        description: '优先选择高优先级分组，同级再按权重分配请求。',
+        weightHelp: '默认 50，范围 1–100；在同一优先级内与凭据权重相乘，决定分配比例。',
       },
       headers: {
         description: '发往上游前设置、覆盖或移除的请求头规则；覆盖后将完整替换全局规则，不做合并。',

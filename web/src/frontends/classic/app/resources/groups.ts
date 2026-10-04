@@ -87,6 +87,7 @@ const groupModelItemFields = [
 const groupCollectionFields = ['observed_at_ms', 'summary', 'items', 'pagination'] as const
 const groupCollectionSummaryFields = ['total', 'available', 'unavailable', 'disabled'] as const
 const groupCollectionItemFields = [
+  'priority',
   'concurrency',
   'id',
   'name',

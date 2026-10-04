@@ -61,7 +61,7 @@ func TestGroupPriorityPersistsPublishesAndResetsToZero(t *testing.T) {
 func TestGroupCreatePriorityIncludesIdempotencyIdentity(t *testing.T) {
 	fixture := newServiceFixture(t)
 	var request GroupCreateRequest
-	if err := json.Unmarshal([]byte(`{"channel_id":"openai","connection_type":"api_key","models":[{"id":"gpt-4o"}],"credentials":"sk-priority","priority":42}`), &request); err != nil {
+	if err := json.Unmarshal([]byte(`{"channel_id":"openai","connection_type":"api_key","params":{},"models":[{"id":"gpt-4o","alias_enabled":false}],"credentials":"sk-priority","priority":42}`), &request); err != nil {
 		t.Fatal(err)
 	}
 	const key = "218f47a2-9c35-4d6e-8b1a-1234567890ab"

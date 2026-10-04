@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const ID0029 = "0029_group_priority"
@@ -16,7 +17,7 @@ func Up0029(db *gorm.DB) error {
 		return err
 	}
 	if !db.Migrator().HasColumn("groups", "priority") {
-		if err := db.Exec("ALTER TABLE groups ADD COLUMN priority INTEGER NOT NULL DEFAULT 0").Error; err != nil {
+		if err := db.Exec("ALTER TABLE ? ADD COLUMN priority INTEGER NOT NULL DEFAULT 0", clause.Table{Name: "groups"}).Error; err != nil {
 			return fmt.Errorf("add group priority: %w", err)
 		}
 	}

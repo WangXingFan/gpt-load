@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"gpt-load/internal/channel"
+	"gpt-load/internal/execution"
 	"gpt-load/internal/platform/config"
 	"gpt-load/internal/state"
 )
@@ -31,17 +32,22 @@ func TestHandlerPriorityFallsBackOnlyAfterRetryableFailure(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			forwarder := &scriptedForwarder{}
 			for _, status := range test.statuses {
-				body := []byte(`{"id":"ok","model":"gpt-4o"}`)
+				body := []byte(`{"id":"ok","model":"gpt-4o","choices":[{"message":{"role":"assistant","content":"ok"}}]}`)
 				if status != 200 {
 					body = []byte(`{"error":"invalid_api_key"}`)
 					if status == 400 {
-						body = []byte(`{"error":{"type":"invalid_request_error","message":"invalid request"}}`)
+						body = []byte(`{"error":{"type":"invalid_request_error","code":"context_length_exceeded","message":"context too long"}}`)
 					}
 				}
 				forwarder.results = append(forwarder.results, UpstreamResult{
 					StatusCode: status, Header: http.Header{"Content-Type": {"application/json"}},
 					Body: body, ClassificationBody: body, RequestWritten: true,
 				})
+				if status == http.StatusBadRequest {
+					forwarder.results[len(forwarder.results)-1].ExecutionError = &execution.ErrorEvidence{
+						Kind: execution.ErrorKindHTTP, Code: "context_length_exceeded", OriginHint: execution.ErrorOriginUpstream,
+					}
+				}
 			}
 			handler, manager, registry := newHandlerForTest(t, forwarder, "sk-low", "sk-middle", "sk-high")
 			entries, err := registry.SnapshotGroupCredentialEntriesExact(1, []uint{1, 2, 3})

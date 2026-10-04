@@ -328,8 +328,8 @@ func Compile(input CompileInput) (*ConfigSnapshot, error) {
 
 	for _, group := range input.Groups {
 		catalogView := GroupCatalogView{
-			Priority:       group.Priority,
-			ID: group.ID, Name: group.Name, Enabled: group.Enabled,
+			Priority: group.Priority,
+			ID:       group.ID, Name: group.Name, Enabled: group.Enabled,
 			ChannelID:      group.ChannelID,
 			ConnectionType: connection.Normalize(group.ConnectionType),
 			WeightManual:   cloneWeight(group.WeightManual),
@@ -351,7 +351,7 @@ func Compile(input CompileInput) (*ConfigSnapshot, error) {
 		}
 
 		view := GroupView{
-			Priority:                 group.Priority,
+			Priority:                  group.Priority,
 			PriceMultiplier:           resolvePriceMultiplier(group.PriceMultiplier),
 			ID:                        group.ID,
 			Name:                      group.Name,
