@@ -60,7 +60,7 @@ const weightInvalid = computed(
     (Number(weight.value) < 1 && Number(weight.value) !== saved.value?.weight),
 )
 const priorityInvalid = computed(
-  () => !/^\d+$/u.test(priority.value) || Number(priority.value) > 1000000,
+  () => !/^\d+$/u.test(priority.value) || Number(priority.value) > 100,
 )
 const priceInvalid = computed(
   () => !/^\d+(?:\.\d{1,6})?$/u.test(price.value.trim()) || Number(price.value) > 1000,

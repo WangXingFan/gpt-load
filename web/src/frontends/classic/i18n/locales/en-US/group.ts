@@ -327,8 +327,8 @@ export default {
         weight: 'Group weight',
         priority: 'Group priority',
         priorityHelp:
-          '0–1000000, highest first. Fall back when higher tiers fail or are unavailable; weights apply within a tier.',
-        priorityError: 'Enter an integer from 0 to 1000000',
+          '0–100, highest first. Fall back when higher tiers fail or are unavailable; weights apply within a tier.',
+        priorityError: 'Enter an integer from 0 to 100',
         auto: 'Auto',
         manual: 'Manual',
         weightError: 'Enter a whole number from 1 to 100',

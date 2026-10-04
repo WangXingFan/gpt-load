@@ -460,7 +460,7 @@ export function projectGroupSettings(value: unknown): GroupSettingsDto {
       record.weight_manual === null
         ? null
         : projectSafeInteger(record.weight_manual, { minimum: 1, maximum: 100 }),
-    priority: projectSafeInteger(record.priority ?? 0, { minimum: 0, maximum: 1000000 }),
+    priority: projectSafeInteger(record.priority ?? 0, { minimum: 0, maximum: 100 }),
     overrides: projectRuntimeConfig(record.overrides, false),
     effective: projectRuntimeConfig(record.effective, true),
     proxy: projectProxyView(record.proxy),

@@ -95,8 +95,8 @@ export const zhCN = {
       name: '分组名称',
       weight: '分组权重',
       priority: '分组优先级',
-      priorityHelp: '0–1000000，越大越优先；高优先级候选失败或不可用后才降级，同级按权重分配。',
-      priorityError: '请输入 0–1000000 之间的整数。',
+      priorityHelp: '0–100，越大越优先；高优先级候选失败或不可用后才降级，同级按权重分配。',
+      priorityError: '请输入 0–100 之间的整数。',
       price: '价格倍率',
       enabled: '启用分组',
       weightHelp: '权重范围 1–100，默认 50；在同一优先级内分配流量。',
@@ -222,8 +222,8 @@ export const enUS: typeof zhCN = {
       weight: 'Group weight',
       priority: 'Group priority',
       priorityHelp:
-        '0–1000000, highest first. Fall back when higher tiers fail or are unavailable; weights apply within a tier.',
-      priorityError: 'Enter an integer from 0 to 1000000.',
+        '0–100, highest first. Fall back when higher tiers fail or are unavailable; weights apply within a tier.',
+      priorityError: 'Enter an integer from 0 to 100.',
       price: 'Price multiplier',
       enabled: 'Enable group',
       weightHelp:
@@ -345,8 +345,8 @@ export const jaJP: typeof zhCN = {
       weight: 'グループの重み',
       priority: 'グループの優先度',
       priorityHelp:
-        '0～1000000。大きい値を優先し、失敗または利用不可の場合に下位へ切り替えます。同じ優先度では重みで分配します。',
-      priorityError: '0～1000000 の整数を入力してください。',
+        '0～100。大きい値を優先し、失敗または利用不可の場合に下位へ切り替えます。同じ優先度では重みで分配します。',
+      priorityError: '0～100 の整数を入力してください。',
       price: '価格倍率',
       enabled: 'グループを有効にする',
       weightHelp: '重みは 1～100（既定値 50）で、同じ優先度の中で適用されます。',

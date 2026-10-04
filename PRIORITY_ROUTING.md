@@ -1,7 +1,7 @@
 # Group priority routing
 
 Set **Group priority** in the group's scheduling settings (modern or classic UI).
-Priority accepts integers from `0` to `1000000`; larger numbers run first.
+Priority accepts integers from `0` to `100`; larger numbers run first.
 Existing groups default to `0`, preserving their existing routing behavior.
 
 For the same client model, eligible groups are considered in descending priority

@@ -67,7 +67,7 @@ const weightValid = computed(
     (Number.isInteger(props.weightManual) && props.weightManual >= 1 && props.weightManual <= 100),
 )
 const priorityValid = computed(
-  () => Number.isInteger(props.priority) && props.priority >= 0 && props.priority <= 1000000,
+  () => Number.isInteger(props.priority) && props.priority >= 0 && props.priority <= 100,
 )
 const baseUrlOverrideEnabled = computed(() => props.params.base_url !== undefined)
 const defaultBaseUrls = computed(() =>
@@ -245,7 +245,7 @@ function parameterPlaceholder(field: ChannelFieldDto): string | undefined {
         class="group-settings__mono"
         type="number"
         min="0"
-        max="1000000"
+        max="100"
         step="1"
         inputmode="numeric"
         :value="priority"

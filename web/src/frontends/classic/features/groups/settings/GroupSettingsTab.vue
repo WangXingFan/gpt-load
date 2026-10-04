@@ -232,7 +232,7 @@ const timeoutValid = computed(() =>
 )
 const priorityValid = computed(() => {
   const value = draft.value?.priority
-  return value !== undefined && Number.isInteger(value) && value >= 0 && value <= 1000000
+  return value !== undefined && Number.isInteger(value) && value >= 0 && value <= 100
 })
 const policyCountsValid = computed(() =>
   policyCountKeys.every((key) => {

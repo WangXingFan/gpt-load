@@ -13,7 +13,7 @@ import (
 func TestGroupPriorityPersistsPublishesAndResetsToZero(t *testing.T) {
 	fixture := newServiceFixture(t)
 	id := createGroupWithCredentials(t, fixture, "sk-priority")
-	for _, priority := range []int{100, 0, state.MaxPriority} {
+	for _, priority := range []int{50, 0, state.MaxPriority} {
 		result, err := fixture.service.UpdateGroupSettings(t.Context(), id, GroupSettingsUpdateRequest{
 			Priority: optionalField[int]{Set: true, Value: priority},
 		})
@@ -38,7 +38,7 @@ func TestGroupPriorityPersistsPublishesAndResetsToZero(t *testing.T) {
 		}
 	}
 	before := fixture.manager.Current()
-	for _, payload := range []string{`{"priority":null}`, `{"priority":-1}`, `{"priority":1000001}`} {
+	for _, payload := range []string{`{"priority":null}`, `{"priority":-1}`, `{"priority":101}`, `{"priority":1000001}`} {
 		var request GroupSettingsUpdateRequest
 		if err := json.Unmarshal([]byte(payload), &request); err != nil {
 			t.Fatal(err)
