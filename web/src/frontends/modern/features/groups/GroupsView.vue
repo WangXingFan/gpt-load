@@ -284,6 +284,8 @@ const filtered = computed(() => {
       return words.every((word) => text.includes(word))
     })
     .sort((a, b) => {
+      if (f.sort === 'routing_priority' && a.priority !== b.priority)
+        return b.priority - a.priority
       if (f.sort === 'priority' && rank(a) !== rank(b)) return rank(a) - rank(b)
       if (f.sort !== 'name' && a.lastActiveHour !== b.lastActiveHour)
         return (b.lastActiveHour ?? -1) - (a.lastActiveHour ?? -1)
@@ -584,6 +586,7 @@ async function refreshGroup(id: number, settings: GroupBasics): Promise<void> {
                 name: settings.name,
                 enabled: settings.enabled,
                 weight: settings.weight ?? 50,
+                priority: settings.priority,
                 priceMultiplier: settings.priceMultiplier,
               }
             : group,

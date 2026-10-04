@@ -28,6 +28,7 @@ const { t } = useI18n()
 const saved = ref<GroupBasics>()
 const name = ref('')
 const weight = ref('50')
+const priority = ref('0')
 const price = ref('1')
 const enabled = ref(true)
 const saving = ref(false)
@@ -42,6 +43,7 @@ const attempted = ref(false)
 const savedFeedback = ref(false)
 const nameInput = ref<InstanceType<typeof AppTextField>>()
 const weightInput = ref<InstanceType<typeof AppTextField>>()
+const priorityInput = ref<InstanceType<typeof AppTextField>>()
 const priceInput = ref<InstanceType<typeof AppTextField>>()
 const controller = new AbortController()
 const nameInvalid = computed(
@@ -57,6 +59,9 @@ const weightInvalid = computed(
     // 历史零权重可保持原值；新设置仍要求 1–100。
     (Number(weight.value) < 1 && Number(weight.value) !== saved.value?.weight),
 )
+const priorityInvalid = computed(
+  () => !/^\d+$/u.test(priority.value) || Number(priority.value) > 1000000,
+)
 const priceInvalid = computed(
   () => !/^\d+(?:\.\d{1,6})?$/u.test(price.value.trim()) || Number(price.value) > 1000,
 )
@@ -66,6 +71,7 @@ const dirty = computed(
     saved.value !== undefined &&
     (name.value !== saved.value.name ||
       weight.value !== String(saved.value.weight ?? 50) ||
+      priority.value !== String(saved.value.priority) ||
       price.value !== saved.value.priceMultiplier ||
       enabled.value !== saved.value.enabled),
 )
@@ -74,6 +80,7 @@ function accept(data: GroupBasics): void {
   saved.value = data
   name.value = data.name
   weight.value = String(data.weight ?? 50)
+  priority.value = String(data.priority)
   price.value = data.priceMultiplier
   enabled.value = data.enabled
   attempted.value = false
@@ -106,7 +113,7 @@ watch(
   },
   { immediate: true },
 )
-watch([name, weight, price, enabled], () => {
+watch([name, weight, priority, price, enabled], () => {
   savedFeedback.value = false
 })
 async function load(): Promise<void> {
@@ -123,13 +130,20 @@ async function save(): Promise<void> {
   if (!saved.value || saving.value || loading.value) return
   attempted.value = true
   saveFailed.value = false
-  if (nameInvalid.value || weightInvalid.value || priceInvalid.value) {
+  if (nameInvalid.value || weightInvalid.value || priorityInvalid.value || priceInvalid.value) {
     await nextTick()
-    const field = nameInvalid.value ? nameInput : weightInvalid.value ? weightInput : priceInput
+    const field = nameInvalid.value
+      ? nameInput
+      : priorityInvalid.value
+        ? priorityInput
+        : weightInvalid.value
+          ? weightInput
+          : priceInput
     field.value?.focus()
     return
   }
   const patch: GroupBasicsPatch = {}
+  if (Number(priority.value) !== saved.value.priority) patch.priority = Number(priority.value)
   if (name.value.trim() !== saved.value.name) patch.name = name.value.trim()
   if (Number(weight.value) !== (saved.value.weight ?? 50))
     patch.weight_manual = Number(weight.value)
@@ -199,6 +213,16 @@ useMessageSource(() =>
           :error="attempted && nameInvalid ? t('groups.edit.nameError') : undefined"
         />
         <div class="modern-group-settings-columns">
+          <AppTextField
+            ref="priorityInput"
+            v-model="priority"
+            :label="t('groups.edit.priority')"
+            :description="t('groups.edit.priorityHelp')"
+            size="sm"
+            inputmode="numeric"
+            :disabled="saving"
+            :error="attempted && priorityInvalid ? t('groups.edit.priorityError') : undefined"
+          />
           <AppTextField
             ref="weightInput"
             v-model="weight"

@@ -143,6 +143,7 @@ export interface GroupEffectiveConfigDto {
 }
 
 export interface GroupSettingsDto {
+  priority: number
   name: string
   price_multiplier: string
   channel_id: string

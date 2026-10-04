@@ -31,6 +31,7 @@ const props = defineProps<{
   validationProtocols: AccessProtocol[]
   models: GroupModelItemDto[]
   weightManual: number | null
+  priority: number
   priceMultiplier: string
   enabled: boolean
   pending: boolean
@@ -45,6 +46,7 @@ const emit = defineEmits<{
   'update:validationProtocol': [value: AccessProtocol]
   'update:validationModel': [value: string | null]
   'update:weightManual': [value: number | null]
+  'update:priority': [value: number]
   'update:priceMultiplier': [value: string]
   'update:enabled': [value: boolean]
 }>()
@@ -63,6 +65,9 @@ const weightValid = computed(
   () =>
     props.weightManual === null ||
     (Number.isInteger(props.weightManual) && props.weightManual >= 1 && props.weightManual <= 100),
+)
+const priorityValid = computed(
+  () => Number.isInteger(props.priority) && props.priority >= 0 && props.priority <= 1000000,
 )
 const baseUrlOverrideEnabled = computed(() => props.params.base_url !== undefined)
 const defaultBaseUrls = computed(() =>
@@ -234,6 +239,23 @@ function parameterPlaceholder(field: ChannelFieldDto): string | undefined {
       <h3>{{ t('group.settings.sections.routing') }}</h3>
       <p>{{ t('group.settings.routing.description') }}</p>
     </header>
+    <label class="group-settings__field group-settings__wide">
+      <span>{{ t('group.settings.base.priority') }}</span>
+      <input
+        class="group-settings__mono"
+        type="number"
+        min="0"
+        max="1000000"
+        step="1"
+        inputmode="numeric"
+        :value="priority"
+        :disabled="pending"
+        :aria-invalid="!priorityValid || undefined"
+        @input="emit('update:priority', ($event.target as HTMLInputElement).valueAsNumber)"
+      />
+      <small>{{ t('group.settings.base.priorityHelp') }}</small>
+      <small v-if="!priorityValid" role="alert">{{ t('group.settings.base.priorityError') }}</small>
+    </label>
     <div class="group-settings__field group-settings__wide">
       <span>{{ t('group.settings.base.weight') }}</span>
       <div class="group-settings__weight-editor">

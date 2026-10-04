@@ -2,6 +2,7 @@
 package scheduler
 
 import (
+	"cmp"
 	"errors"
 	"slices"
 	"strings"
@@ -71,6 +72,7 @@ type Iterator struct {
 	regular               candidatePool
 	storeDowngraded       candidatePool
 	routeModeTiers        [][]channel.RouteMode
+	priorityTiers         []int
 	allowedCredentialIDs  map[uint]struct{}
 	preferredCredentialID uint
 	tried                 map[uint]struct{}
@@ -154,6 +156,9 @@ func newWithClock(
 	targets, staticReason := filterTargetsWithReason(snapshot, query)
 	iterator.staticReason = staticReason
 	for _, target := range targets {
+		if !slices.Contains(iterator.priorityTiers, target.group.Priority) {
+			iterator.priorityTiers = append(iterator.priorityTiers, target.group.Priority)
+		}
 		pool := &iterator.regular
 		if target.responsesStoreDowngraded {
 			pool = &iterator.storeDowngraded
@@ -165,6 +170,7 @@ func newWithClock(
 			pool.groupIDsByMode[mode] = append(pool.groupIDsByMode[mode], groupID)
 		}
 	}
+	slices.SortFunc(iterator.priorityTiers, func(a, b int) int { return cmp.Compare(b, a) })
 	for _, pool := range []*candidatePool{&iterator.regular, &iterator.storeDowngraded} {
 		for _, targets := range pool.targetsByGroup {
 			slices.SortFunc(targets, func(a, b candidateTarget) int {
@@ -220,20 +226,28 @@ func (iterator *Iterator) weightedPoolForMode(
 	}
 	var weighted []weightedCredential
 	var total int64
-	iterator.withWeightedPool(&iterator.regular, []channel.RouteMode{mode}, now, func(pool []weightedCredential) {
-		weighted = pool
-		for _, candidate := range pool {
-			total += candidate.weight
+	for _, priority := range iterator.priorityTiers {
+		iterator.withWeightedPool(&iterator.regular, []channel.RouteMode{mode}, priority, now, func(pool []weightedCredential) {
+			weighted = pool
+			for _, candidate := range pool {
+				total += candidate.weight
+			}
+		})
+		if total > 0 {
+			break
 		}
-	})
+	}
 	return weighted, total
 }
 
-func (iterator *Iterator) withWeightedPool(candidates *candidatePool, modes []channel.RouteMode, now time.Time, fn func([]weightedCredential)) {
+func (iterator *Iterator) withWeightedPool(candidates *candidatePool, modes []channel.RouteMode, priority int, now time.Time, fn func([]weightedCredential)) {
 	var groupIDs []uint
 	seenGroups := make(map[uint]struct{})
 	for _, mode := range modes {
 		for _, groupID := range candidates.groupIDsByMode[mode] {
+			if iterator.snapshot.Groups[groupID].Priority != priority {
+				continue
+			}
 			if _, exists := seenGroups[groupID]; !exists {
 				seenGroups[groupID] = struct{}{}
 				groupIDs = append(groupIDs, groupID)
@@ -284,13 +298,16 @@ func (iterator *Iterator) Next() (Selection, error) {
 	if iterator == nil || iterator.credentials == nil || iterator.progress == nil || iterator.now == nil {
 		return Selection{}, ErrExhausted
 	}
-	for _, pool := range []*candidatePool{&iterator.regular, &iterator.storeDowngraded} {
-		for _, modes := range iterator.routeModeTiers {
+	// Priority is considered before route preference and credential affinity.
+	// Next is called again only when the gateway can safely retry a failed attempt.
+	for _, priority := range iterator.priorityTiers {
+		for _, pool := range []*candidatePool{&iterator.regular, &iterator.storeDowngraded} {
+			for _, modes := range iterator.routeModeTiers {
 			var selected state.CredentialMeta
 			var target candidateTarget
 			var found bool
 			now := iterator.now()
-			iterator.withWeightedPool(pool, modes, now, func(weighted []weightedCredential) {
+			iterator.withWeightedPool(pool, modes, priority, now, func(weighted []weightedCredential) {
 				selected, found = iterator.selectCredential(weighted, iterator.preferredCredentialID)
 				if !found {
 					return
@@ -302,6 +319,7 @@ func (iterator *Iterator) Next() (Selection, error) {
 			}
 			iterator.tried[selected.ID] = struct{}{}
 			return newSelection(selected, target), nil
+			}
 		}
 	}
 	return Selection{}, ErrExhausted

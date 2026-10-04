@@ -62,6 +62,7 @@ func mapGroupRowToState(group models.Group) (state.GroupConfig, error) {
 		Models:             runtimeModels,
 		Settings:           settings,
 		WeightManual:       cloneInt(group.WeightManual), Enabled: group.Enabled,
+		Priority:           group.Priority,
 	}
 	return result, nil
 }

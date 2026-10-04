@@ -5,6 +5,7 @@ import "fmt"
 const (
 	DefaultWeight = 50
 	MaxWeight     = 100
+	MaxPriority   = 1000000
 )
 
 func cloneWeight(weight *int) *int {

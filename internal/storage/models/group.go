@@ -19,6 +19,7 @@ type Group struct {
 	Params                JSON           `gorm:"type:json;not null"`
 	Models                JSON           `gorm:"type:json;not null"`
 	WeightManual          *int
+	Priority              int `gorm:"not null;default:0"`
 	ValidationProtocol    *string      `gorm:"type:varchar(32)"`
 	ValidationModel       *string      `gorm:"type:varchar(255)"`
 	Overrides             JSON         `gorm:"type:json"`

@@ -23,6 +23,7 @@ export interface GroupSettingsDraft {
   validation_protocol: GroupSettingsDto['validation_protocol']
   enabled: boolean
   weight_manual: number | null
+  priority: number
   price_multiplier: string
   overrides: GroupRuntimeConfigDto
 }
@@ -196,6 +197,7 @@ export function buildGroupSettingsPatch(
   const priceMultiplier = normalizePriceMultiplier(draft.price_multiplier)
   if (priceMultiplier !== base.price_multiplier) patch.price_multiplier = priceMultiplier
   if (draft.weight_manual !== base.weight_manual) patch.weight_manual = draft.weight_manual
+  if (draft.priority !== base.priority) patch.priority = draft.priority
   if (JSON.stringify(overrides) !== JSON.stringify(normalizeOverrides(base.overrides))) {
     patch.overrides = overrides
   }
